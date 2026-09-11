@@ -1,4 +1,4 @@
-name: CI Workflow
+name: Steps Workflow
 
 on:
   workflow_dispatch:
