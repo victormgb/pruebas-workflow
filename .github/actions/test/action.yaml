@@ -1,0 +1,20 @@
+name: Local Action Workflow
+description: "A workflow to test a local action"
+
+inputs:
+  python-version:
+    description: "The version of Python to use"
+    required: true
+    default: "3.12"
+
+outputs:
+  app-status:
+    description: "The status of the application"
+    value: "success"
+
+runs: 
+  using: "composite"
+  steps:
+    - name: Run Tests
+      run: |
+        echo "Running tests ..."
