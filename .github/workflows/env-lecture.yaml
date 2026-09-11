@@ -1,4 +1,4 @@
-name: Actions Workflow
+name: Env Workflow
 
 on:
   workflow_dispatch:
