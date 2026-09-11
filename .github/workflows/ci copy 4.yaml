@@ -1,8 +1,8 @@
 name: CI Workflow
 
 on:
-  repository_dispatch:
-    types: [test-event]
+  release:
+    types: [published]
 
 jobs:
   build:

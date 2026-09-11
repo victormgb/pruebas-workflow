@@ -1,0 +1,17 @@
+name: CI Workflow
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    steps:
+      - run: |
+          echo "Installing dependencies ..."
+          echo "status=success" >> $GITHUB_OUTPUT
+        id: step1
+      - name: Test
+        run: |
+          echo "El resultado del paso anterior fue ${{ steps.step1.outputs.status }}"
+          echo "Running tests ..."
+        id: step2
