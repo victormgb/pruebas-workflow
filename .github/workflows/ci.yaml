@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  # Permite ejecutar el workflow bajo demanda desde la pestaña Actions.
+  workflow_dispatch:
+
+  # Solo valida pushes integrados en main; las ramas se validan mediante PR.
+  push:
+    branches:
+      - main
+    paths:
+      - '**/*.py'
+      - 'requirements*.txt'
+      - 'pyproject.toml'
+      - 'setup.cfg'
+      - 'tox.ini'
+      - 'Dockerfile'
+      - '!docs/**'
+      - '!.github/workflows/**'
+
+  # Valida PRs dirigidas a ramas de integracion.
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - '**/*.py'
+      - 'requirements*.txt'
+      - 'pyproject.toml'
+      - 'setup.cfg'
+      - 'tox.ini'
+      - 'Dockerfile'
+      - '!docs/**'
+      - '!.github/workflows/**'
+
+  # Opcional: habilitar publicaciones formales sin ejecutar por cada tag.
+  # release:
+  #   types: [published]
+
+# Cancela ejecuciones obsoletas de la misma rama o PR.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  # Comprueba sintaxis y ejecuta las pruebas.
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install dependencies
+        if: hashFiles('requirements.txt') != ''
+        run: python -m pip install -r requirements.txt
+
+      - name: Check Python syntax
+        run: python -m compileall -q .
+
+      - name: Run pytest
+        if: hashFiles('tests/**/*.py') != ''
+        run: python -m pytest
+
+  # Construye despues de que los tests hayan terminado.
+  build:
+    name: Build
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build project
+        run: python -m compileall -q .
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-source
+          path: |
+            **/*.py
+            !docs/**
+
+  # El deploy queda separado y nunca se ejecuta en PRs.
+  deploy:
+    name: Deploy
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Deploy project
+        run: echo "Deploying the validated build..."
