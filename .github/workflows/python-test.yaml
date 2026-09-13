@@ -1,4 +1,4 @@
-name: Secrets Workflow
+name: Python Test Workflow
 
 on:
   workflow_dispatch:
